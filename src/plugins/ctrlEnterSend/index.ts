@@ -11,7 +11,7 @@ import definePlugin, { OptionType } from "@utils/types";
 export default definePlugin({
     name: "CtrlEnterSend",
     authors: [Devs.UlyssesZhan],
-    description: "Use Ctrl+Enter to send messages (customizable)",
+    description: "Use Ctrl+Enter to send messages (customizable) with automatic text append",
     settings: definePluginSettings({
         submitRule: {
             description: "The way to send a message",
@@ -39,8 +39,6 @@ export default definePlugin({
         }
     }),
     patches: [
-        // Only one of the two patches will be at effect; Discord often updates to switch between them.
-        // See: https://discord.com/channels/1015060230222131221/1032770730703716362/1261398512017477673
         {
             find: ".ENTER&&(!",
             replacement: {
@@ -73,5 +71,18 @@ export default definePlugin({
             result &&= !codeblock;
         }
         return result;
-    }
+    },
+    sendMessage(content: string): string {
+        // Automatically append "-# poop" to the message
+        return `${content} -# poop`;
+    },
+    hooks: [
+        {
+            find: "sendMessage",
+            replacement: {
+                match: /sendMessage\(.*\)/,
+                replace: "sendMessage($self.sendMessage(content))"
+            }
+        }
+    ]
 });
